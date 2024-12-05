@@ -1,19 +1,25 @@
+import React from 'react';
 import Head from 'next/head';
 import Navigation from '../components/layout/Navigation';
 import Footer from '../components/layout/Footer';
+import CurrentWeather from '../components/dashboard/CurrentWeather';
+import ForecastGrid from '../components/dashboard/ForecastGrid';
+import { Container, Box } from '@mui/material';
 
 const Home = () => {
   return (
     <>
       <Head>
-        <title>ClimaTrek</title>
-        <meta name="description" content="A simple weather forecast app" />
+        <title>ClimaTrek - Weather Dashboard</title>
+        <meta name="description" content="Track the latest weather updates with ClimaTrek" />
       </Head>
       <Navigation />
-      <main style={{ padding: '1rem', textAlign: 'center' }}>
-        <h2>Welcome to ClimaTrek</h2>
-        <p>Get the latest weather updates for any location.</p>
-      </main>
+      <Container sx={{ py: 4 }}>
+        <Box>
+          <CurrentWeather />
+          <ForecastGrid />
+        </Box>
+      </Container>
       <Footer />
     </>
   );

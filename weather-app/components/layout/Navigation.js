@@ -1,33 +1,19 @@
-import styled from '@emotion/styled';
+import React from 'react';
+import { AppBar, Toolbar, Typography, Button } from '@mui/material';
 
-const Nav = styled.nav`
-  background: #4a90e2;
-  padding: 0.5rem 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const Link = styled.a`
-  color: #fff;
-  text-decoration: none;
-  margin: 0 1rem;
-  font-weight: bold;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const Navigation = () => (
-  <Nav>
-    <h1 style={{ color: '#fff' }}>ClimaTrek</h1>
-    <div>
-      <Link href="#home">Home</Link>
-      <Link href="#about">About</Link>
-      <Link href="#contact">Contact</Link>
-    </div>
-  </Nav>
-);
+const Navigation = () => {
+  return (
+    <AppBar position="static" color="primary">
+      <Toolbar>
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          ClimaTrek
+        </Typography>
+        <Button color="inherit" href="/">Home</Button>
+        <Button color="inherit" href="/about">About</Button>
+        <Button color="inherit" href="/contact">Contact</Button>
+      </Toolbar>
+    </AppBar>
+  );
+};
 
 export default Navigation;

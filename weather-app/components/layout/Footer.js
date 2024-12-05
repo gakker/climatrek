@@ -1,17 +1,23 @@
-import styled from '@emotion/styled';
+import React from 'react';
+import { Box, Typography } from '@mui/material';
 
-const FooterContainer = styled.footer`
-  background: #4a90e2;
-  color: #fff;
-  text-align: center;
-  padding: 1rem 0;
-  margin-top: 2rem;
-`;
-
-const Footer = () => (
-  <FooterContainer>
-    <p>© {new Date().getFullYear()} ClimaTrek. All Rights Reserved.</p>
-  </FooterContainer>
-);
+const Footer = () => {
+  return (
+    <Box
+      component="footer"
+      sx={{
+        backgroundColor: '#333',
+        color: '#fff',
+        py: 2,
+        textAlign: 'center',
+        mt: 3,
+      }}
+    >
+      <Typography variant="body2">
+        © {new Date().getFullYear()} ClimaTrek. All Rights Reserved.
+      </Typography>
+    </Box>
+  );
+};
 
 export default Footer;
