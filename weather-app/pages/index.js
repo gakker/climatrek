@@ -1,24 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Head from 'next/head';
-import Navigation from '../components/layout/Navigation';
 import Footer from '../components/layout/Footer';
 import CurrentWeather from '../components/dashboard/CurrentWeather';
 import ForecastGrid from '../components/dashboard/ForecastGrid';
-import { Container, Box } from '@mui/material';
+import Navigation from '../components/layout/Navigation';
+import { Container, Typography } from '@mui/material';
 
 const Home = () => {
+  const [location, setLocation] = useState('New York');
+
+  const handleLocationSearch = (newLocation) => {
+    setLocation(newLocation);
+    console.log(`Searching weather for: ${newLocation}`);
+  };
+
   return (
     <>
       <Head>
-        <title>ClimaTrek - Weather Dashboard</title>
+        <title>ClimaTrek</title>
         <meta name="description" content="Track the latest weather updates with ClimaTrek" />
       </Head>
-      <Navigation />
+      <Navigation onSearch={handleLocationSearch} />
       <Container sx={{ py: 4 }}>
-        <Box>
-          <CurrentWeather />
-          <ForecastGrid />
-        </Box>
+        <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
+          Weather for: {location}
+        </Typography>
+        <CurrentWeather />
+        <ForecastGrid />
       </Container>
       <Footer />
     </>
