@@ -5,6 +5,7 @@ import CurrentWeather from '../components/dashboard/CurrentWeather';
 import ForecastGrid from '../components/dashboard/ForecastGrid';
 import Navigation from '../components/layout/Navigation';
 import { Container, Typography } from '@mui/material';
+import Dashboard from '../components/dashboard/dashboard';
 
 const Home = () => {
   const [location, setLocation] = useState('New York');
@@ -26,7 +27,7 @@ const Home = () => {
           Weather for: {location}
         </Typography>
         <CurrentWeather />
-        <ForecastGrid />
+        <Dashboard/> 
       </Container>
       <Footer />
     </>
