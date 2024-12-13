@@ -27,7 +27,7 @@ const Home = () => {
           Weather for: {location}
         </Typography>
         <CurrentWeather />
-        <Dashboard/> 
+        <Dashboard location = {location}/> 
       </Container>
       <Footer />
     </>

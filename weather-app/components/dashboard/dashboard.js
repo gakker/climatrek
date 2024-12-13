@@ -24,7 +24,7 @@ const getWeatherIcon = (condition) => {
   }
 };
 
-const Dashboard = () => {
+const Dashboard = ({ location }) => {
   const [weeklyForecast, setWeeklyForecast] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -34,33 +34,51 @@ const Dashboard = () => {
       try {
         setLoading(true);
         setError(false);
-
-        // Replace 'YOUR_API_KEY' with your OpenWeatherMap API key
+    
         const response = await axios.get(
-          `https://api.openweathermap.org/data/2.5/forecast/daily?q=New York&cnt=7&units=metric&appid=6a1135adf8e1bb1844a8b6d56812b69e`
+          `https://api.openweathermap.org/data/2.5/forecast?q=${location}&units=metric&appid=6a1135adf8e1bb1844a8b6d56812b69e`
         );
-
-        const formattedData = response.data.list.map((day) => ({
-          day: new Date(day.dt * 1000).toLocaleDateString('en-US', { weekday: 'long' }),
-          temp: Math.round(day.temp.day),
-          condition: day.weather[0].main,
-        }));
-
-        setWeeklyForecast(formattedData);
+    
+        // Group data by date
+        const groupedData = response.data.list.reduce((acc, entry) => {
+          const date = entry.dt_txt.split(' ')[0]; // Extract date from dt_txt
+          if (!acc[date]) {
+            acc[date] = [];
+          }
+          acc[date].push(entry);
+          return acc;
+        }, {});
+    
+        // Process each group to calculate daily averages
+        const formattedData = Object.keys(groupedData).map((date) => {
+          const dayEntries = groupedData[date];
+          const avgTemp =
+            dayEntries.reduce((sum, entry) => sum + entry.main.temp, 0) / dayEntries.length;
+          const condition = dayEntries[0].weather[0].main; // Take the condition of the first entry
+          const day = new Date(date).toLocaleDateString('en-US', { weekday: 'long' });
+    
+          return {
+            day,
+            temp: Math.round(avgTemp),
+            condition,
+          };
+        });
+    
+        setWeeklyForecast(formattedData.slice(0, 7)); // Take only the next 7 days
       } catch (err) {
         setError(true);
       } finally {
         setLoading(false);
       }
     };
-
+    
     fetchWeatherData();
-  }, []);
+  }, [location]);
 
   return (
     <Box sx={{ padding: 2 }}>
       <Typography variant="h5" gutterBottom sx={{ textAlign: 'center', mb: 4 }}>
-        Weekly Forecast
+        Weekly Forecast for {location}
       </Typography>
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
