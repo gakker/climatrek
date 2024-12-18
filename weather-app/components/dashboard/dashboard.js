@@ -9,9 +9,31 @@ import {
   Button,
   Tooltip,
 } from "@mui/material";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+
+  Legend,
+} from "chart.js";
+import { Line } from "react-chartjs-2";
 import axios from "axios";
 import HourlyForecast from "./HourlyForecast";
 import iconMapping from "../../utils/iconMapping";
+
+// Register chart components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+
+  Legend
+);
 
 const Dashboard = ({ location }) => {
   const [weeklyForecast, setWeeklyForecast] = useState([]);
@@ -21,6 +43,33 @@ const Dashboard = ({ location }) => {
   const [selectedDay, setSelectedDay] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  // Prepare data for the line chart
+  const lineChartData = {
+    labels: weeklyForecast.map((day) => day.day), // Days of the week
+    datasets: [
+      {
+        label: "Temperature (°C)",
+        data: weeklyForecast.map((day) => day.temp), // Daily average temperatures
+        borderColor: "#1976D2",
+        backgroundColor: "rgba(25, 118, 210, 0.2)",
+        pointBackgroundColor: "#1976D2",
+        pointBorderColor: "#fff",
+        pointHoverBackgroundColor: "#fff",
+        pointHoverBorderColor: "#1976D2",
+        tension: 0.3,
+      },
+    ],
+  };
+  const lineChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: true, position: "top" },
+      title: { display: true, text: "Weekly Temperature Trend" },
+    },
+    scales: {
+      y: { beginAtZero: true },
+    },
+  };
   const fetchWeatherData = async () => {
     try {
       setLoading(true);
@@ -165,6 +214,13 @@ const Dashboard = ({ location }) => {
         isOpen={isDialogOpen}
         onClose={handleCloseDialog}
       />
+
+      <Box sx={{ mt: 6 }}>
+        <Typography variant="h6" gutterBottom sx={{ textAlign: "center" }}>
+          Weekly Temperature Trend
+        </Typography>
+        <Line data={lineChartData} options={lineChartOptions} />
+      </Box>
     </Box>
   );
 };
