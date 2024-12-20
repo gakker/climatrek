@@ -6,12 +6,12 @@ import {
   Typography,
   Box,
   CircularProgress,
-  Button,
 } from "@mui/material";
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
+  BarElement,
   PointElement,
   LineElement,
   Title,
@@ -19,7 +19,7 @@ import {
   Legend,
   Filler,
 } from "chart.js";
-import { Line } from "react-chartjs-2";
+import { Line, Bar } from "react-chartjs-2";
 import axios from "axios";
 import HourlyForecast from "./HourlyForecast";
 import iconMapping from "../../utils/iconMapping";
@@ -30,6 +30,7 @@ ChartJS.register(
   LinearScale,
   PointElement,
   LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
@@ -73,6 +74,9 @@ const Dashboard = ({ location }) => {
             ...dayEntries.map((entry) => entry.main.temp_min)
           );
           const condition = dayEntries[0].weather[0].main;
+          const precipitation = Math.max(
+            ...dayEntries.map((entry) => entry.pop * 100)
+          );
           const day = new Date(date).toLocaleDateString("en-US", {
             weekday: "long",
           });
@@ -83,6 +87,7 @@ const Dashboard = ({ location }) => {
             tempMax: Math.round(maxTemp),
             tempMin: Math.round(minTemp),
             condition,
+            precipitation,
             hourly: dayEntries,
           };
         });
@@ -110,7 +115,7 @@ const Dashboard = ({ location }) => {
     setHourlyForecast([]);
   };
 
-  const graphData = {
+  const lineGraphData = {
     labels: weeklyForecast.map((day) => day.day),
     datasets: [
       {
@@ -132,25 +137,22 @@ const Dashboard = ({ location }) => {
     ],
   };
 
+  const barGraphData = {
+    labels: weeklyForecast.map((day) => day.day),
+    datasets: [
+      {
+        label: "Precipitation (%)",
+        data: weeklyForecast.map((day) => day.precipitation),
+        backgroundColor: "rgba(33, 150, 243, 0.5)",
+      },
+    ],
+  };
+
   const graphOptions = {
     responsive: true,
     plugins: {
       legend: {
         position: "top",
-        onClick: (e, legendItem, legend) => {
-          const datasetIndex = legendItem.datasetIndex;
-          const visibility = legend.chart.isDatasetVisible(datasetIndex);
-          legend.chart.setDatasetVisibility(datasetIndex, !visibility);
-        },
-      },
-      tooltip: {
-        callbacks: {
-          label: (context) => {
-            const dataIndex = context.dataIndex;
-            const day = weeklyForecast[dataIndex];
-            return `${context.dataset.label}: ${context.raw}°C\nCondition: ${day.condition}`;
-          },
-        },
       },
     },
     scales: {
@@ -163,7 +165,7 @@ const Dashboard = ({ location }) => {
       y: {
         title: {
           display: true,
-          text: "Temperature (°C)",
+          text: "Value",
         },
       },
     },
@@ -171,8 +173,8 @@ const Dashboard = ({ location }) => {
 
   return (
     <Box sx={{ padding: 2 }}>
-      <Typography variant="h5" gutterBottom sx={{ textAlign: "center", mb: 4 }}>
-        Weekly Forecast for {location}
+      <Typography variant="h4" sx={{ textAlign: "center", mb: 4 }}>
+        Weekly Weather Dashboard
       </Typography>
       {loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
@@ -189,14 +191,18 @@ const Dashboard = ({ location }) => {
               const WeatherIcon = iconMapping[day.condition] || WiDaySunny;
 
               return (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+                <Grid item xs={12} sm={6} md={6} lg={4} key={index}>
                   <Card
                     sx={{
                       textAlign: "center",
-                      background: "#e3f2fd",
+                      background: "rgba(255, 255, 255, 0.8)",
                       boxShadow: 3,
                       borderRadius: 2,
                       cursor: "pointer",
+                      transition: "transform 0.3s ease",
+                      "&:hover": {
+                        transform: "scale(1.05)",
+                      },
                     }}
                     onClick={() => handleDayClick(day)}
                   >
@@ -228,7 +234,15 @@ const Dashboard = ({ location }) => {
             >
               Temperature Trends
             </Typography>
-            <Line data={graphData} options={graphOptions} />
+            <Line data={lineGraphData} options={graphOptions} />
+            <Typography
+              variant="h6"
+              gutterBottom
+              sx={{ textAlign: "center", mt: 6 }}
+            >
+              Precipitation Overview
+            </Typography>
+            <Bar data={barGraphData} options={graphOptions} />
           </Box>
         </>
       )}
@@ -244,7 +258,7 @@ const Dashboard = ({ location }) => {
           temperature: weeklyForecast.map((day) => day.temp),
           humidity: weeklyForecast.map((day) => day.hourly[0].main.humidity),
           wind: weeklyForecast.map((day) => day.hourly[0].wind.speed),
-          precipitation: weeklyForecast.map((day) => day.hourly[0].pop * 100), // Convert probability to %
+          precipitation: weeklyForecast.map((day) => day.precipitation),
         }}
       />
     </Box>
@@ -252,3 +266,4 @@ const Dashboard = ({ location }) => {
 };
 
 export default Dashboard;
+
