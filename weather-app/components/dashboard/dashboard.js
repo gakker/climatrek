@@ -122,7 +122,7 @@ const Dashboard = ({ location }) => {
         label: "Max Temperature (°C)",
         data: weeklyForecast.map((day) => day.tempMax),
         borderColor: "#FF5722",
-        backgroundColor: "rgba(255, 87, 34, 0.2)",
+        backgroundColor: "rgba(255, 87, 34, 0.4)",
         tension: 0.4,
         fill: true,
       },
@@ -130,7 +130,7 @@ const Dashboard = ({ location }) => {
         label: "Min Temperature (°C)",
         data: weeklyForecast.map((day) => day.tempMin),
         borderColor: "#03A9F4",
-        backgroundColor: "rgba(3, 169, 244, 0.2)",
+        backgroundColor: "rgba(3, 169, 244, 0.4)",
         tension: 0.4,
         fill: true,
       },
@@ -143,7 +143,7 @@ const Dashboard = ({ location }) => {
       {
         label: "Precipitation (%)",
         data: weeklyForecast.map((day) => day.precipitation),
-        backgroundColor: "rgba(33, 150, 243, 0.5)",
+        backgroundColor: "rgba(33, 150, 243, 0.4)",
       },
     ],
   };
@@ -171,6 +171,10 @@ const Dashboard = ({ location }) => {
     },
   };
 
+  const currentDay = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+  });
+
   return (
     <Box sx={{ padding: 2 }}>
       <Typography variant="h4" sx={{ textAlign: "center", mb: 4 }}>
@@ -195,29 +199,33 @@ const Dashboard = ({ location }) => {
                   <Card
                     sx={{
                       textAlign: "center",
-                      background: "rgba(255, 255, 255, 0.8)",
+                      background: `linear-gradient(to bottom right, rgba(25, 118, 210, 0.8), rgba(33, 150, 243, 0.8))`,
+                      color: "#FFFFFF",
                       boxShadow: 3,
-                      borderRadius: 2,
+                      borderRadius: 3,
                       cursor: "pointer",
-                      transition: "transform 0.3s ease",
+                      border:
+                        day.day === currentDay ? "3px solid #FFEB3B" : "none", // Highlight current day
+                      transition: "transform 0.3s ease, box-shadow 0.3s ease",
                       "&:hover": {
                         transform: "scale(1.05)",
+                        boxShadow: "0px 8px 20px rgba(33, 150, 243, 0.5)",
                       },
                     }}
                     onClick={() => handleDayClick(day)}
                   >
                     <CardContent>
-                      <WeatherIcon size={60} color="#1976D2" />
+                      <WeatherIcon size={60} color="#FFEB3B" />
                       <Typography variant="h6" sx={{ mt: 2 }}>
                         {day.day}
                       </Typography>
                       <Typography
                         variant="h4"
-                        sx={{ mt: 1, fontWeight: "bold", color: "#1976D2" }}
+                        sx={{ mt: 1, fontWeight: "bold", color: "#FFEB3B" }}
                       >
                         {day.temp}°C
                       </Typography>
-                      <Typography variant="body1" sx={{ color: "#757575" }}>
+                      <Typography variant="body1" sx={{ color: "#E3F2FD" }}>
                         {day.condition}
                       </Typography>
                     </CardContent>
@@ -266,4 +274,3 @@ const Dashboard = ({ location }) => {
 };
 
 export default Dashboard;
-
