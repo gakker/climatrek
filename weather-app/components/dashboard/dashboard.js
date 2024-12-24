@@ -7,6 +7,12 @@ import {
   Box,
   CircularProgress,
 } from "@mui/material";
+import { WiThermometer, WiRain, WiStrongWind } from "react-icons/wi";
+import { Line, Bar } from "react-chartjs-2";
+import HourlyForecast from "./HourlyForecast";
+import iconMapping from "../../utils/iconMapping";
+import WeatherDetails from "./WeatherDetails";
+import axios from "axios";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -19,11 +25,7 @@ import {
   Legend,
   Filler,
 } from "chart.js";
-import { Line, Bar } from "react-chartjs-2";
-import axios from "axios";
-import HourlyForecast from "./HourlyForecast";
-import iconMapping from "../../utils/iconMapping";
-import WeatherDetails from "./WeatherDetails";
+
 
 ChartJS.register(
   CategoryScale,
@@ -37,6 +39,7 @@ ChartJS.register(
   Filler
 );
 
+
 const Dashboard = ({ location }) => {
   const [weeklyForecast, setWeeklyForecast] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,62 +49,66 @@ const Dashboard = ({ location }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
-    const fetchWeatherData = async () => {
-      try {
-        setLoading(true);
-        setError(false);
-
-        const response = await axios.get(
-          `https://api.openweathermap.org/data/2.5/forecast?q=${location}&units=metric&appid=${process.env.NEXT_PUBLIC_WEATHER_API_KEY}`
-        );
-
-        const groupedData = response.data.list.reduce((acc, entry) => {
-          const date = entry.dt_txt.split(" ")[0];
-          if (!acc[date]) acc[date] = [];
-          acc[date].push(entry);
-          return acc;
-        }, {});
-
-        const formattedData = Object.keys(groupedData).map((date) => {
-          const dayEntries = groupedData[date];
-          const avgTemp =
-            dayEntries.reduce((sum, entry) => sum + entry.main.temp, 0) /
-            dayEntries.length;
-          const maxTemp = Math.max(
-            ...dayEntries.map((entry) => entry.main.temp_max)
-          );
-          const minTemp = Math.min(
-            ...dayEntries.map((entry) => entry.main.temp_min)
-          );
-          const condition = dayEntries[0].weather[0].main;
-          const precipitation = Math.max(
-            ...dayEntries.map((entry) => entry.pop * 100)
-          );
-          const day = new Date(date).toLocaleDateString("en-US", {
-            weekday: "long",
-          });
-
-          return {
-            day,
-            temp: Math.round(avgTemp),
-            tempMax: Math.round(maxTemp),
-            tempMin: Math.round(minTemp),
-            condition,
-            precipitation,
-            hourly: dayEntries,
-          };
-        });
-
-        setWeeklyForecast(formattedData.slice(0, 7));
-      } catch (err) {
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchWeatherData();
   }, [location]);
+
+  const fetchWeatherData = async () => {
+    try {
+      setLoading(true);
+      setError(false);
+
+      const response = await axios.get(
+        `https://api.openweathermap.org/data/2.5/forecast?q=${location}&units=metric&appid=${process.env.NEXT_PUBLIC_WEATHER_API_KEY}`
+      );
+
+      const groupedData = response.data.list.reduce((acc, entry) => {
+        const date = entry.dt_txt.split(" ")[0];
+        if (!acc[date]) acc[date] = [];
+        acc[date].push(entry);
+        return acc;
+      }, {});
+
+      const formattedData = Object.keys(groupedData).map((date) => {
+        const dayEntries = groupedData[date];
+        const avgTemp =
+          dayEntries.reduce((sum, entry) => sum + entry.main.temp, 0) /
+          dayEntries.length;
+        const maxTemp = Math.max(
+          ...dayEntries.map((entry) => entry.main.temp_max)
+        );
+        const minTemp = Math.min(
+          ...dayEntries.map((entry) => entry.main.temp_min)
+        );
+        const condition = dayEntries[0].weather[0].main;
+        const precipitation = Math.max(
+          ...dayEntries.map((entry) => entry.pop * 100)
+        );
+        const windSpeed = Math.max(
+          ...dayEntries.map((entry) => entry.wind.speed)
+        );
+        const day = new Date(date).toLocaleDateString("en-US", {
+          weekday: "long",
+        });
+
+        return {
+          day,
+          temp: Math.round(avgTemp),
+          tempMax: Math.round(maxTemp),
+          tempMin: Math.round(minTemp),
+          condition,
+          precipitation,
+          windSpeed,
+          hourly: dayEntries,
+        };
+      });
+
+      setWeeklyForecast(formattedData.slice(0, 7));
+    } catch (err) {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDayClick = (dayData) => {
     setSelectedDay(dayData.day);
@@ -114,6 +121,19 @@ const Dashboard = ({ location }) => {
     setSelectedDay(null);
     setHourlyForecast([]);
   };
+
+  const averageTemperature =
+    weeklyForecast.reduce((sum, day) => sum + day.temp, 0) /
+    weeklyForecast.length;
+
+  const totalPrecipitation = weeklyForecast.reduce(
+    (sum, day) => sum + day.precipitation,
+    0
+  );
+
+  const highestWindSpeed = Math.max(
+    ...weeklyForecast.map((day) => day.windSpeed)
+  );
 
   const lineGraphData = {
     labels: weeklyForecast.map((day) => day.day),
@@ -142,11 +162,12 @@ const Dashboard = ({ location }) => {
     datasets: [
       {
         label: "Precipitation (%)",
-        data: weeklyForecast.map((day) => day.precipitation),
+        data: weeklyForecast.map((day) => day.precipitation || 0),  // Handle potential undefined values
         backgroundColor: "rgba(33, 150, 243, 0.4)",
       },
     ],
   };
+  
 
   const graphOptions = {
     responsive: true,
@@ -171,15 +192,59 @@ const Dashboard = ({ location }) => {
     },
   };
 
-  const currentDay = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-  });
-
   return (
     <Box sx={{ padding: 2 }}>
       <Typography variant="h4" sx={{ textAlign: "center", mb: 4 }}>
         Weekly Weather Dashboard
       </Typography>
+
+      {/* Weekly Highlights Card */}
+      <Card
+        sx={{
+          mb: 4,
+          p: 3,
+          background: `linear-gradient(to right, #FF9800, #FFC107)`,
+          color: "#FFFFFF",
+          boxShadow: 3,
+          borderRadius: 3,
+        }}
+      >
+        <CardContent>
+          <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
+            Weekly Highlights
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={4}>
+              <Box sx={{ textAlign: "center" }}>
+                <WiThermometer size={48} color="#FFF" />
+                <Typography variant="h6">Avg Temp</Typography>
+                <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                  {averageTemperature.toFixed(1)}°C
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <Box sx={{ textAlign: "center" }}>
+                <WiRain size={48} color="#FFF" />
+                <Typography variant="h6">Total Rain</Typography>
+                <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                  {totalPrecipitation.toFixed(1)}%
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <Box sx={{ textAlign: "center" }}>
+                <WiStrongWind size={48} color="#FFF" />
+                <Typography variant="h6">Max Wind</Typography>
+                <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                  {highestWindSpeed} km/h
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
+
       {loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
           <CircularProgress />
@@ -190,6 +255,7 @@ const Dashboard = ({ location }) => {
         </Typography>
       ) : (
         <>
+          {/* Weekly Cards */}
           <Grid container spacing={3}>
             {weeklyForecast.map((day, index) => {
               const WeatherIcon = iconMapping[day.condition] || WiDaySunny;
@@ -205,7 +271,12 @@ const Dashboard = ({ location }) => {
                       borderRadius: 3,
                       cursor: "pointer",
                       border:
-                        day.day === currentDay ? "3px solid #FFEB3B" : "none", // Highlight current day
+                        day.day ===
+                        new Date().toLocaleDateString("en-US", {
+                          weekday: "long",
+                        })
+                          ? "3px solid #FFEB3B"
+                          : "none",
                       transition: "transform 0.3s ease, box-shadow 0.3s ease",
                       "&:hover": {
                         transform: "scale(1.05)",
@@ -216,12 +287,10 @@ const Dashboard = ({ location }) => {
                   >
                     <CardContent>
                       <WeatherIcon size={60} color="#FFEB3B" />
-                      <Typography variant="h6" sx={{ mt: 2 }}>
-                        {day.day}
-                      </Typography>
+                      <Typography variant="h6">{day.day}</Typography>
                       <Typography
                         variant="h4"
-                        sx={{ mt: 1, fontWeight: "bold", color: "#FFEB3B" }}
+                        sx={{ fontWeight: "bold", color: "#FFEB3B" }}
                       >
                         {day.temp}°C
                       </Typography>
@@ -234,32 +303,29 @@ const Dashboard = ({ location }) => {
               );
             })}
           </Grid>
+
+          {/* Graphs */}
           <Box sx={{ mt: 6 }}>
-            <Typography
-              variant="h6"
-              gutterBottom
-              sx={{ textAlign: "center", mb: 4 }}
-            >
+            <Typography variant="h6" sx={{ textAlign: "center", mb: 4 }}>
               Temperature Trends
             </Typography>
             <Line data={lineGraphData} options={graphOptions} />
-            <Typography
-              variant="h6"
-              gutterBottom
-              sx={{ textAlign: "center", mt: 6 }}
-            >
+
+            <Typography variant="h6" sx={{ textAlign: "center", mt: 6 }}>
               Precipitation Overview
             </Typography>
             <Bar data={barGraphData} options={graphOptions} />
           </Box>
         </>
       )}
+
       <HourlyForecast
         hourlyData={hourlyForecast}
         selectedDay={selectedDay}
         isOpen={isDialogOpen}
         onClose={handleCloseDialog}
       />
+
       <WeatherDetails
         weatherMetrics={{
           days: weeklyForecast.map((day) => day.day),
