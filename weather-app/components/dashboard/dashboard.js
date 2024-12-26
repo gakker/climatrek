@@ -1,44 +1,13 @@
+// Dashboard.js
 import React, { useEffect, useState } from "react";
-import {
-  Grid,
-  Card,
-  CardContent,
-  Typography,
-  Box,
-  CircularProgress,
-} from "@mui/material";
-import { WiThermometer, WiRain, WiStrongWind } from "react-icons/wi";
+import { Grid, CircularProgress, Typography, Box } from "@mui/material";
 import { Line, Bar } from "react-chartjs-2";
-import HourlyForecast from "./HourlyForecast";
-import iconMapping from "../../utils/iconMapping";
-import WeatherDetails from "./WeatherDetails";
 import axios from "axios";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-} from "chart.js";
-
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
-
+import WeeklyHighlights from "./WeeklyHighlights";
+import WeeklyCard from "./WeeklyCard";
+import { generateLineGraphData, generateBarGraphData, generateComparisonGraphData } from "../../utils/graphHelpers";
+import HourlyForecast from "./HourlyForecast";
+import WeatherDetails from "./WeatherDetails";
 
 const Dashboard = ({ location }) => {
   const [weeklyForecast, setWeeklyForecast] = useState([]);
@@ -56,11 +25,9 @@ const Dashboard = ({ location }) => {
     try {
       setLoading(true);
       setError(false);
-
       const response = await axios.get(
         `https://api.openweathermap.org/data/2.5/forecast?q=${location}&units=metric&appid=${process.env.NEXT_PUBLIC_WEATHER_API_KEY}`
       );
-
       const groupedData = response.data.list.reduce((acc, entry) => {
         const date = entry.dt_txt.split(" ")[0];
         if (!acc[date]) acc[date] = [];
@@ -122,75 +89,9 @@ const Dashboard = ({ location }) => {
     setHourlyForecast([]);
   };
 
-  const averageTemperature =
-    weeklyForecast.reduce((sum, day) => sum + day.temp, 0) /
-    weeklyForecast.length;
-
-  const totalPrecipitation = weeklyForecast.reduce(
-    (sum, day) => sum + day.precipitation,
-    0
-  );
-
-  const highestWindSpeed = Math.max(
-    ...weeklyForecast.map((day) => day.windSpeed)
-  );
-
-  const lineGraphData = {
-    labels: weeklyForecast.map((day) => day.day),
-    datasets: [
-      {
-        label: "Max Temperature (°C)",
-        data: weeklyForecast.map((day) => day.tempMax),
-        borderColor: "#FF5722",
-        backgroundColor: "rgba(255, 87, 34, 0.4)",
-        tension: 0.4,
-        fill: true,
-      },
-      {
-        label: "Min Temperature (°C)",
-        data: weeklyForecast.map((day) => day.tempMin),
-        borderColor: "#03A9F4",
-        backgroundColor: "rgba(3, 169, 244, 0.4)",
-        tension: 0.4,
-        fill: true,
-      },
-    ],
-  };
-
-  const barGraphData = {
-    labels: weeklyForecast.map((day) => day.day),
-    datasets: [
-      {
-        label: "Precipitation (%)",
-        data: weeklyForecast.map((day) => day.precipitation || 0),  // Handle potential undefined values
-        backgroundColor: "rgba(33, 150, 243, 0.4)",
-      },
-    ],
-  };
-  
-
-  const graphOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "top",
-      },
-    },
-    scales: {
-      x: {
-        title: {
-          display: true,
-          text: "Day of the Week",
-        },
-      },
-      y: {
-        title: {
-          display: true,
-          text: "Value",
-        },
-      },
-    },
-  };
+  const lineGraphData = generateLineGraphData(weeklyForecast);
+  const barGraphData = generateBarGraphData(weeklyForecast);
+  const comparisonGraphData = generateComparisonGraphData(weeklyForecast);
 
   return (
     <Box sx={{ padding: 2 }}>
@@ -198,52 +99,8 @@ const Dashboard = ({ location }) => {
         Weekly Weather Dashboard
       </Typography>
 
-      {/* Weekly Highlights Card */}
-      <Card
-        sx={{
-          mb: 4,
-          p: 3,
-          background: `linear-gradient(to right, #FF9800, #FFC107)`,
-          color: "#FFFFFF",
-          boxShadow: 3,
-          borderRadius: 3,
-        }}
-      >
-        <CardContent>
-          <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
-            Weekly Highlights
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={4}>
-              <Box sx={{ textAlign: "center" }}>
-                <WiThermometer size={48} color="#FFF" />
-                <Typography variant="h6">Avg Temp</Typography>
-                <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                  {averageTemperature.toFixed(1)}°C
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Box sx={{ textAlign: "center" }}>
-                <WiRain size={48} color="#FFF" />
-                <Typography variant="h6">Total Rain</Typography>
-                <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                  {totalPrecipitation.toFixed(1)}%
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Box sx={{ textAlign: "center" }}>
-                <WiStrongWind size={48} color="#FFF" />
-                <Typography variant="h6">Max Wind</Typography>
-                <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                  {highestWindSpeed} km/h
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
+      {/* Weekly Highlights Section */}
+      <WeeklyHighlights weeklyForecast={weeklyForecast} />
 
       {loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
@@ -257,64 +114,29 @@ const Dashboard = ({ location }) => {
         <>
           {/* Weekly Cards */}
           <Grid container spacing={3}>
-            {weeklyForecast.map((day, index) => {
-              const WeatherIcon = iconMapping[day.condition] || WiDaySunny;
-
-              return (
-                <Grid item xs={12} sm={6} md={6} lg={4} key={index}>
-                  <Card
-                    sx={{
-                      textAlign: "center",
-                      background: `linear-gradient(to bottom right, rgba(25, 118, 210, 0.8), rgba(33, 150, 243, 0.8))`,
-                      color: "#FFFFFF",
-                      boxShadow: 3,
-                      borderRadius: 3,
-                      cursor: "pointer",
-                      border:
-                        day.day ===
-                        new Date().toLocaleDateString("en-US", {
-                          weekday: "long",
-                        })
-                          ? "3px solid #FFEB3B"
-                          : "none",
-                      transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                      "&:hover": {
-                        transform: "scale(1.05)",
-                        boxShadow: "0px 8px 20px rgba(33, 150, 243, 0.5)",
-                      },
-                    }}
-                    onClick={() => handleDayClick(day)}
-                  >
-                    <CardContent>
-                      <WeatherIcon size={60} color="#FFEB3B" />
-                      <Typography variant="h6">{day.day}</Typography>
-                      <Typography
-                        variant="h4"
-                        sx={{ fontWeight: "bold", color: "#FFEB3B" }}
-                      >
-                        {day.temp}°C
-                      </Typography>
-                      <Typography variant="body1" sx={{ color: "#E3F2FD" }}>
-                        {day.condition}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              );
-            })}
+            {weeklyForecast.map((day, index) => (
+              <Grid item xs={12} sm={6} md={6} lg={4} key={index}>
+                <WeeklyCard dayData={day} onClick={() => handleDayClick(day)} />
+              </Grid>
+            ))}
           </Grid>
 
-          {/* Graphs */}
+          {/* Graphs Section */}
           <Box sx={{ mt: 6 }}>
             <Typography variant="h6" sx={{ textAlign: "center", mb: 4 }}>
               Temperature Trends
             </Typography>
-            <Line data={lineGraphData} options={graphOptions} />
+            <Line data={lineGraphData} />
 
             <Typography variant="h6" sx={{ textAlign: "center", mt: 6 }}>
               Precipitation Overview
             </Typography>
-            <Bar data={barGraphData} options={graphOptions} />
+            <Bar data={barGraphData} />
+
+            <Typography variant="h6" sx={{ textAlign: "center", mt: 6 }}>
+              Compare Temperatures
+            </Typography>
+            <Bar data={comparisonGraphData} />
           </Box>
         </>
       )}
