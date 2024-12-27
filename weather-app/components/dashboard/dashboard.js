@@ -1,13 +1,20 @@
-// Dashboard.js
 import React, { useEffect, useState } from "react";
 import { Grid, CircularProgress, Typography, Box } from "@mui/material";
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Tooltip, Legend } from "chart.js";
 import { Line, Bar } from "react-chartjs-2";
 import axios from "axios";
 import WeeklyHighlights from "./WeeklyHighlights";
 import WeeklyCard from "./WeeklyCard";
-import { generateLineGraphData, generateBarGraphData, generateComparisonGraphData } from "../../utils/graphHelpers";
+import {
+  generateLineGraphData,
+  generateBarGraphData,
+  generateComparisonGraphData,
+} from "../../utils/graphHelpers";
 import HourlyForecast from "./HourlyForecast";
 import WeatherDetails from "./WeatherDetails";
+
+// Register Chart.js components
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Tooltip, Legend);
 
 const Dashboard = ({ location }) => {
   const [weeklyForecast, setWeeklyForecast] = useState([]);
