@@ -1,19 +1,24 @@
 import React, { useEffect, useState } from "react";
-import { Grid, CircularProgress, Typography, Box } from "@mui/material";
+import {
+  Grid,
+  CircularProgress,
+  Typography,
+  Box,
+} from "@mui/material";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Tooltip, Legend } from "chart.js";
-import { Line, Bar } from "react-chartjs-2";
 import axios from "axios";
 import WeeklyHighlights from "./WeeklyHighlights";
 import WeeklyCard from "./WeeklyCard";
+import GraphSection from "./GraphSection";
+import HourlyForecast from "./HourlyForecast";
+import WeatherDetails from "./WeatherDetails";
+import SunriseSunsetVisualization from "./SunriseSunsetVisualization";
 import {
   generateLineGraphData,
   generateBarGraphData,
   generateComparisonGraphData,
 } from "../../utils/graphHelpers";
-import HourlyForecast from "./HourlyForecast";
-import WeatherDetails from "./WeatherDetails";
 
-// Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Tooltip, Legend);
 
 const Dashboard = ({ location }) => {
@@ -23,6 +28,7 @@ const Dashboard = ({ location }) => {
   const [hourlyForecast, setHourlyForecast] = useState([]);
   const [selectedDay, setSelectedDay] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [sunData, setSunData] = useState(null);
 
   useEffect(() => {
     fetchWeatherData();
@@ -35,6 +41,16 @@ const Dashboard = ({ location }) => {
       const response = await axios.get(
         `https://api.openweathermap.org/data/2.5/forecast?q=${location}&units=metric&appid=${process.env.NEXT_PUBLIC_WEATHER_API_KEY}`
       );
+      const currentWeather = await axios.get(
+        `https://api.openweathermap.org/data/2.5/weather?q=${location}&units=metric&appid=${process.env.NEXT_PUBLIC_WEATHER_API_KEY}`
+      );
+
+      const sunrise = new Date(currentWeather.data.sys.sunrise * 1000).toLocaleTimeString();
+      const sunset = new Date(currentWeather.data.sys.sunset * 1000).toLocaleTimeString();
+
+      setSunData({ sunrise, sunset });
+
+      // Process Weekly Data
       const groupedData = response.data.list.reduce((acc, entry) => {
         const date = entry.dt_txt.split(" ")[0];
         if (!acc[date]) acc[date] = [];
@@ -96,17 +112,12 @@ const Dashboard = ({ location }) => {
     setHourlyForecast([]);
   };
 
-  const lineGraphData = generateLineGraphData(weeklyForecast);
-  const barGraphData = generateBarGraphData(weeklyForecast);
-  const comparisonGraphData = generateComparisonGraphData(weeklyForecast);
-
   return (
     <Box sx={{ padding: 2 }}>
       <Typography variant="h4" sx={{ textAlign: "center", mb: 4 }}>
         Weekly Weather Dashboard
       </Typography>
 
-      {/* Weekly Highlights Section */}
       <WeeklyHighlights weeklyForecast={weeklyForecast} />
 
       {loading ? (
@@ -123,31 +134,34 @@ const Dashboard = ({ location }) => {
           <Grid container spacing={3}>
             {weeklyForecast.map((day, index) => (
               <Grid item xs={12} sm={6} md={6} lg={4} key={index}>
-                <WeeklyCard dayData={day} onClick={() => handleDayClick(day)} />
+                <WeeklyCard
+                  dayData={day}
+                  onClick={() => handleDayClick(day)}
+                />
               </Grid>
             ))}
           </Grid>
 
-          {/* Graphs Section */}
-          <Box sx={{ mt: 6 }}>
-            <Typography variant="h6" sx={{ textAlign: "center", mb: 4 }}>
-              Temperature Trends
-            </Typography>
-            <Line data={lineGraphData} />
+          {/* Graph Section */}
+          <GraphSection
+            lineGraphData={generateLineGraphData(weeklyForecast)}
+            barGraphData={generateBarGraphData(weeklyForecast)}
+            comparisonGraphData={generateComparisonGraphData(weeklyForecast)}
+          />
 
-            <Typography variant="h6" sx={{ textAlign: "center", mt: 6 }}>
-              Precipitation Overview
-            </Typography>
-            <Bar data={barGraphData} />
-
-            <Typography variant="h6" sx={{ textAlign: "center", mt: 6 }}>
-              Compare Temperatures
-            </Typography>
-            <Bar data={comparisonGraphData} />
-          </Box>
+          {/* Sunrise and Sunset Visualization */}
+          {sunData && (
+            <Box sx={{ mt: 6 }}>
+              <Typography variant="h6" sx={{ textAlign: "center", mb: 2 }}>
+                Sunrise & Sunset Visualization
+              </Typography>
+              <SunriseSunsetVisualization sunData={sunData} />
+            </Box>
+          )}
         </>
       )}
 
+      {/* Hourly Forecast Dialog */}
       <HourlyForecast
         hourlyData={hourlyForecast}
         selectedDay={selectedDay}
@@ -155,6 +169,7 @@ const Dashboard = ({ location }) => {
         onClose={handleCloseDialog}
       />
 
+      {/* Weather Details Section */}
       <WeatherDetails
         weatherMetrics={{
           days: weeklyForecast.map((day) => day.day),
