@@ -207,7 +207,7 @@ const Dashboard = ({ location }) => {
 
       {/* Monthly Climate Calendar */}
       <Box sx={{ mt: 6 }}>
-        <Paper elevation={3} sx={{ p: 2, borderRadius: 2 }}>
+        <Paper elevation={3} sx={{ p: 2, borderRadius: 2, background:'rgb(130 182 224 / 80%)' }}>
           <MonthlyClimateCalendar location={location} />
         </Paper>
       </Box>
