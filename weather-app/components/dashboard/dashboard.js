@@ -23,6 +23,7 @@ import {
   generateBarGraphData,
   generateComparisonGraphData,
 } from "../../utils/graphHelpers";
+import DynamicMonthlyClimate from "./DynamicMonthlyClimate";
 
 ChartJS.register(
   CategoryScale,
@@ -206,9 +207,19 @@ const Dashboard = ({ location }) => {
       />
 
       {/* Monthly Climate Calendar */}
-      <Box sx={{ mt: 6 }}>
+      {/* <Box sx={{ mt: 6 }}>
         <Paper elevation={3} sx={{ p: 2, borderRadius: 2, background:'rgb(130 182 224 / 80%)' }}>
           <MonthlyClimateCalendar location={location} />
+        </Paper>
+      </Box> */}
+      {/* <DynamicMonthlyClimate location={location} /> */}
+
+      <Box sx={{ mt: 6 }}>
+        <Paper
+          elevation={3}
+          sx={{ p: 2, borderRadius: 2, background: "rgb(130 182 224 / 80%)" }}
+        >
+          <DynamicMonthlyClimate location={location} />
         </Paper>
       </Box>
     </Box>
