@@ -24,6 +24,7 @@ import {
   generateComparisonGraphData,
 } from "../../utils/graphHelpers";
 import DynamicMonthlyClimate from "./DynamicMonthlyClimate";
+import WeatherAlerts from "./WeatherAlerts";
 
 ChartJS.register(
   CategoryScale,
@@ -150,6 +151,7 @@ const Dashboard = ({ location }) => {
       </Typography>
 
       <WeeklyHighlights weeklyForecast={weeklyForecast} />
+      <WeatherAlerts location={location} />
 
       {loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
@@ -205,14 +207,6 @@ const Dashboard = ({ location }) => {
           precipitation: weeklyForecast.map((day) => day.precipitation),
         }}
       />
-
-      {/* Monthly Climate Calendar */}
-      {/* <Box sx={{ mt: 6 }}>
-        <Paper elevation={3} sx={{ p: 2, borderRadius: 2, background:'rgb(130 182 224 / 80%)' }}>
-          <MonthlyClimateCalendar location={location} />
-        </Paper>
-      </Box> */}
-      {/* <DynamicMonthlyClimate location={location} /> */}
 
       <Box sx={{ mt: 6 }}>
         <Paper

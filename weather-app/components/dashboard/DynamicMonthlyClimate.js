@@ -41,7 +41,7 @@ const DynamicMonthlyClimate = ({ location }) => {
   }, [selectedMonth]);
 
   return (
-    <Box>
+    <Box sx={{ mt: 4 }}>
       <Typography variant="h5" sx={{ textAlign: "center", mb: 2 }}>
         Monthly Climate Overview
       </Typography>
@@ -58,8 +58,20 @@ const DynamicMonthlyClimate = ({ location }) => {
         <Typography variant="body1" color="error" sx={{ textAlign: "center" }}>
           Failed to load monthly climate data. Please try again later.
         </Typography>
-      ) : (
+      ) : monthlyData.length > 0 ? (
         <MonthlyClimateCalendar monthlyData={monthlyData} />
+      ) : (
+        <Typography
+          variant="body1"
+          sx={{
+            textAlign: "center",
+            mt: 4,
+            fontStyle: "italic",
+            color: "gray",
+          }}
+        >
+          No data available for the selected month.
+        </Typography>
       )}
     </Box>
   );
