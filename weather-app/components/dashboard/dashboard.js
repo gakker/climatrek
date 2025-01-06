@@ -25,6 +25,7 @@ import {
 } from "../../utils/graphHelpers";
 import DynamicMonthlyClimate from "./DynamicMonthlyClimate";
 import WeatherAlerts from "./WeatherAlerts";
+import AirQualityIndex from "./AirQualityIndex";
 
 ChartJS.register(
   CategoryScale,
@@ -152,6 +153,7 @@ const Dashboard = ({ location }) => {
 
       <WeeklyHighlights weeklyForecast={weeklyForecast} />
       <WeatherAlerts location={location} />
+      <AirQualityIndex location={location} />
 
       {loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
@@ -207,7 +209,6 @@ const Dashboard = ({ location }) => {
           precipitation: weeklyForecast.map((day) => day.precipitation),
         }}
       />
-
       <Box sx={{ mt: 6 }}>
         <Paper
           elevation={3}
