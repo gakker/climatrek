@@ -12,7 +12,7 @@ import axios from "axios";
 import AirIcon from "@mui/icons-material/Air";
 import WhatshotIcon from "@mui/icons-material/Whatshot";
 import GrainIcon from "@mui/icons-material/Grain";
-import NatureIcon from "@mui/icons-material/Nature"; // Replacing EcoIcon
+import NatureIcon from "@mui/icons-material/Nature"; 
 
 const pollutantIcons = {
   pm2_5: <GrainIcon color="primary" />,

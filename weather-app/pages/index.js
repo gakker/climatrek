@@ -8,7 +8,7 @@ import { Container, Typography } from '@mui/material';
 import Dashboard from '../components/dashboard/dashboard';
 
 const Home = () => {
-  const [location, setLocation] = useState('New York');
+  const [location, setLocation] = useState('lahore');
 
   const handleLocationSearch = (newLocation) => {
     setLocation(newLocation);
@@ -26,7 +26,7 @@ const Home = () => {
         <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
           Weather for: {location}
         </Typography>
-        <CurrentWeather />
+        <CurrentWeather  location={location}/>
         <Dashboard location = {location}/> 
       </Container>
       <Footer />
