@@ -23,9 +23,6 @@ const Home = () => {
       </Head>
       <Navigation onSearch={handleLocationSearch} />
       <Container sx={{ py: 4 }}>
-        <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
-          Weather for: {location}
-        </Typography>
         <CurrentWeather  location={location}/>
         <Dashboard location = {location}/> 
       </Container>

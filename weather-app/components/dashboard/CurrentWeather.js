@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Card, CardContent, Typography, Box, CircularProgress } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  CircularProgress,
+} from "@mui/material";
 import Image from "next/image";
 import moment from "moment-timezone";
 
@@ -14,9 +20,11 @@ const CurrentWeather = ({ location }) => {
     try {
       setLoading(true);
       setError(false);
+
       const response = await axios.get(
         `https://api.openweathermap.org/data/2.5/weather?q=${location}&units=metric&appid=${process.env.NEXT_PUBLIC_WEATHER_API_KEY}`
       );
+
       setWeatherData(response.data);
     } catch (err) {
       console.error(err);
@@ -30,7 +38,7 @@ const CurrentWeather = ({ location }) => {
     if (weatherData && weatherData.timezone) {
       const localTime = moment()
         .utcOffset(weatherData.timezone / 60)
-        .format("dddd, MMMM Do YYYY, h:mm:ss A");
+        .format("h:mm A");
       setCurrentTime(localTime);
     }
   };
@@ -44,20 +52,20 @@ const CurrentWeather = ({ location }) => {
     return () => clearInterval(timer);
   }, [weatherData]);
 
-  const getWeatherIcon = (icon) => `https://openweathermap.org/img/wn/${icon}@4x.png`;
+  const getWeatherIcon = (icon) =>
+    icon ? `https://openweathermap.org/img/wn/${icon}@4x.png` : "";
 
   return (
     <Card
       sx={{
         minWidth: 300,
-        maxWidth: 600,
-        textAlign: "center",
-        mb: 3,
+        maxWidth: 700,
         margin: "0 auto",
-        p: 3,
-        background: "linear-gradient(to bottom, #2196F3, #FFFFFF)",
         borderRadius: 4,
-        boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.2)",
+        background: "linear-gradient(to bottom, #2196F3, #FFFFFF)",
+
+        padding: 3,
+        boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.5)",
       }}
     >
       {loading ? (
@@ -66,19 +74,19 @@ const CurrentWeather = ({ location }) => {
         <Typography color="error">Failed to load weather data.</Typography>
       ) : weatherData ? (
         <CardContent>
-          <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
-            {weatherData.name}, {weatherData.sys.country}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            {currentTime || "Fetching time..."}
-          </Typography>
+          <Box sx={{ textAlign: "center", mb: 3 }}>
+            <Typography variant="h6">{currentTime}</Typography>
+            <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+              {weatherData.name}, {weatherData.sys.country}
+            </Typography>
+          </Box>
+
           <Box
             sx={{
               display: "flex",
-              justifyContent: "center",
               alignItems: "center",
+              justifyContent: "center",
               gap: 2,
-              mt: 2,
             }}
           >
             <Image
@@ -87,39 +95,63 @@ const CurrentWeather = ({ location }) => {
               width={80}
               height={80}
             />
-            <Typography
-              variant="h3"
-              sx={{
-                fontWeight: "bold",
-                color: "#1E90FF",
-                animation: "fadeIn 1s ease-in-out",
-              }}
-            >
+            <Typography variant="h1" sx={{ fontWeight: "bold" }}>
               {Math.round(weatherData.main.temp)}°C
             </Typography>
           </Box>
-          <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
+          <Typography
+            variant="h5"
+            sx={{ textAlign: "center", textTransform: "capitalize", mb: 3 }}
+          >
             {weatherData.weather[0].description}
           </Typography>
+
+          {/* Horizontal Metrics Layout */}
           <Box
             sx={{
               display: "flex",
-              justifyContent: "space-around",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
               mt: 3,
-              textAlign: "center",
+              padding: 2,
+              borderRadius: 2,
+              background: "#94c0f3",
             }}
           >
-            <Typography variant="body2">
-              <strong>Humidity:</strong> {weatherData.main.humidity}%
-            </Typography>
-            <Typography variant="body2">
-              <strong>Wind:</strong> {Math.round(weatherData.wind.speed)} m/s
-            </Typography>
-            <Typography variant="body2">
-              <strong>Pressure:</strong> {weatherData.main.pressure} hPa
-            </Typography>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="body2">Air Quality</Typography>
+              <Typography variant="h6">33</Typography>
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="body2">Wind</Typography>
+              <Typography variant="h6">
+                {Math.round(weatherData.wind.speed)} mph
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="body2">Humidity</Typography>
+              <Typography variant="h6">{weatherData.main.humidity}%</Typography>
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="body2">Visibility</Typography>
+              <Typography variant="h6">
+                {(weatherData.visibility / 1609.34).toFixed(1)} mi
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="body2">Pressure</Typography>
+              <Typography variant="h6">
+                {weatherData.main.pressure} in
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="body2">Dew Point</Typography>
+              <Typography variant="h6">7°F</Typography>
+            </Box>
           </Box>
-          <Box sx={{ mt: 3 }}>
+
+          <Box sx={{ textAlign: "center", mt: 3 }}>
             <Typography variant="body2">
               <strong>Sunrise:</strong>{" "}
               {moment
@@ -137,7 +169,7 @@ const CurrentWeather = ({ location }) => {
           </Box>
         </CardContent>
       ) : (
-        <Typography variant="body1">No weather data available.</Typography>
+        <Typography>No weather data available.</Typography>
       )}
     </Card>
   );
